@@ -1,3 +1,9 @@
+from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError, ConnectionFailure
+from bson.objectid import ObjectId
+from datetime import datetime, timedelta
+from typing import Optional, List, Dict
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
