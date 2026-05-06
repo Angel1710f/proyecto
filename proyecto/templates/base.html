@@ -1,65 +1,61 @@
-<!doctype html>
-<html lang="es-mx">
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}NutriApp{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/colors.css') }}">
+    {% if session.usuario %}
+    <div style="background:#1877f2; padding:10px; color:white; display:flex; justify-content:space-between;">
+        <span>👤 {{ session.usuario }}</span>
+        <a href="/logout" style="color:white;">Cerrar sesión</a>
+    </div>
+{% endif %}
+    <title>Gestor de Tareas</title>
+    <style>
+        body {
+            background: #f0f2f5;
+            font-family: Arial;
+        }
 
+        .container {
+            width: 320px;
+            margin: auto;
+            margin-top: 100px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #166fe5;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+            text-align: center;
+            color: #1877f2;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: var(--primary);">
-        <div class="container">
-            <a class="navbar-brand text-white" href="{{ url_for('inicio') }}">🥗 NutriApp</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('formulario') }}">📝 Formulario</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('recetas') }}">🍳 Recetas</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('educacion') }}">📚 Educación</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="calcNav" role="button" data-bs-toggle="dropdown">
-                            🧮 Calculadoras
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="calcNav">
-                            <li><a class="dropdown-item" href="{{ url_for('tmb') }}">TMB</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('gct') }}">GCT</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('macros') }}">Macros</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('peso_ideal') }}">Peso Ideal</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('nutrientes') }}">🥕 Nutrientes</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('login') }}">🔐 Login</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <main>
-        <div class="container my-5">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                {% for m in messages %}
-                    <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    {{ m }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-                {% endif %}
-            {% endwith %}
-            {% block contenido %}{% endblock %}
-        </div>
-    </main>
-
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="muted">Aplicación orientativa — no sustituye consejo profesional</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>

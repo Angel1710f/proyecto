@@ -1,99 +1,104 @@
+from flask import Flask, render_template, request, redirect, url_for
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError, ConnectionFailure
 from bson.objectid import ObjectId
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict
-import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import session
 
 app = Flask(__name__)
-app.secret_key = "El_Panadero_Con_El_Pan"
 
-usuarios = {
-    "angel@gmail.com": "1234"
-}
+app.secret_key = "panadero_con_el_pan"
+
+client = MongoClient("mongodb://localhost:27017/")
+db = client["mi_app"]
+usuarios = db["usuarios"]
+tareas_db = db["tareas"]
 
 @app.route("/")
-def inicio():
-    return render_template("base.html")
+def index():
+    return render_template("login.html")
 
-
-@app.route("/formulario")
-def formulario():
-    return render_template("formulario.html")
-
-
-@app.route("/resultado", methods=["POST"])
-def resultado():
-    nombre = request.form.get("nombre")
-    return render_template("formulario.html", nombre=nombre)
-
-
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["POST"])
 def login():
+    usuario = request.form["usuario"]
+    contraseña = request.form["contraseña"]
+
+    user = usuarios.find_one({
+        "usuario": usuario,
+        "contraseña": contraseña
+    })
+
+    if user:
+        session["usuario"] = usuario  # 🔥 GUARDAR SESIÓN
+        return redirect("/tareas")
+    else:
+        return "Datos incorrectos"
+
+@app.route("/logout")
+def logout():
+    session.pop("usuario", None)
+    return redirect("/")
+
+@app.route("/registro", methods=["GET", "POST"])
+def registro():
     if request.method == "POST":
-        correo = request.form["correo"]
+        usuario = request.form["usuario"]
         contraseña = request.form["contraseña"]
 
-        if correo in usuarios and usuarios[correo] == contraseña:
-            flash("Bienvenido 😃")
-            return redirect(url_for("inicio"))
-        else:
-            flash("Correo o contraseña incorrectos")
-            return redirect(url_for("login"))
+        if not usuario or not contraseña:
+            return "Completa todos los campos"
 
-    return render_template("inicio_de_sesion.html")
+        if usuarios.find_one({"usuario": usuario}):
+            return "El usuario ya existe"
 
+        usuarios.insert_one({
+            "usuario": usuario,
+            "contraseña": contraseña
+        })
+
+        return redirect("/")
+
+    return render_template("registro.html")
 
 @app.route("/recuperar", methods=["GET", "POST"])
 def recuperar():
     if request.method == "POST":
-        flash("Si el correo existe, se enviaron instrucciones")
-        return redirect(url_for("login"))
+        usuario = request.form["usuario"]
 
-    return render_template("recuperar_contraseña.html")
+        user = usuarios.find_one({"usuario": usuario})
 
+        if user:
+            return f"Tu contraseña es: {user['contraseña']}"
+        else:
+            return "Usuario no encontrado"
 
-@app.route("/recetas")
-def recetas():
-    return "<h2>Recetas próximamente 👀</h2>"
+    return render_template("recuperar.html")
 
+@app.route("/tareas")
+def tareas():
+    if "usuario" not in session:
+        return redirect("/")
 
-@app.route("/educacion")
-def educacion():
-    return "<h2>Sección de educación 📚</h2>"
-
-
-@app.route("/tmb")
-def tmb():
-    return "<h2>Calculadora TMB</h2>"
-
-
-@app.route("/gct")
-def gct():
-    return "<h2>Calculadora GCT</h2>"
+    lista_tareas = list(tareas_db.find({"usuario": session["usuario"]}))
+    return render_template("tareas.html", tareas=lista_tareas)
 
 
-@app.route("/macros")
-def macros():
-    return "<h2>Calculadora de macros</h2>"
+@app.route("/eliminar/<id>")
+def eliminar(id):
+    tareas_db.delete_one({"_id": ObjectId(id)})
+    return redirect("/tareas")
 
+@app.route("/agregar", methods=["POST"])
+def agregar():
+    if "usuario" not in session:
+        return redirect("/")
 
-@app.route("/peso_ideal")
-def peso_ideal():
-    return "<h2>Peso ideal</h2>"
+    tarea = request.form["tarea"]
 
+    tareas_db.insert_one({
+        "usuario": session["usuario"],
+        "tarea": tarea
+    })
 
-@app.route("/nutrientes")
-def nutrientes():
-    return "<h2>Información de nutrientes</h2>"
-
-
-@app.route("/clear")
-def clear():
-    flash("Datos borrados")
-    return redirect(url_for("formulario"))
-
+    return redirect("/tareas")
 
 if __name__ == "__main__":
     app.run(debug=True)
