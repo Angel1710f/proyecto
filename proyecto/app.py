@@ -27,7 +27,7 @@ def login():
     })
 
     if user:
-        session["usuario"] = usuario  # 🔥 GUARDAR SESIÓN
+        session["usuario"] = usuario 
         return redirect("/tareas")
     else:
         return "Datos incorrectos"

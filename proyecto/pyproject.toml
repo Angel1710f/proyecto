@@ -10,3 +10,8 @@ dependencies = [
     "pymongo>=4.16.0",
     "requests>=2.33.1",
 ]
+
+[tool.uv.workspace]
+members = [
+    "proyecto",
+]
